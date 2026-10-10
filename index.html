@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>诡秘之主｜纵横战略服人员参加表</title>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei","宋体",serif;}
+body{
+  background:#05040d;
+  background-image:
+    radial-gradient(circle at 15% 20%, #2a146033 0%, transparent 45%),
+    radial-gradient(circle at 85% 80%, #4a103033 0%, transparent 45%);
+  color:#f1e9ff;
+  padding:8px;
+  min-height:100vh;
+}
+
+/* =================== 头部美化区域 =================== */
+.header-visual{
+  position:relative;
+  width:100%;
+  border-radius:12px;
+  padding:14px 16px;
+  margin-bottom:12px;
+  background:
+    linear-gradient(135deg, rgba(43,27,72,0.95), rgba(18,11,34,0.95));
+  border:1px solid rgba(168,122,255,0.45);
+  box-shadow: 0 0 16px rgba(120,80,255,0.25);
+  overflow:hidden;
+}
+.header-visual::before{
+  content:"";
+  position:absolute;
+  width:220px;height:220px;
+  top:-100px;right:-80px;
+  background:radial-gradient(circle, rgba(168,122,255,0.12), transparent 70%);
+  pointer-events:none;
+}
+
+.visual-title{
+  text-align:center;
+  font-size:20px;
+  font-weight:bold;
+  letter-spacing:3px;
+  color:#ffe699;
+  text-shadow:0 0 8px rgba(255,212,96,0.65);
+  margin-bottom:12px;
+}
+.title-divider{
+  width:60%;
+  height:1px;
+  margin:0 auto 14px;
+  background:linear-gradient(90deg, transparent, #ffd460, transparent);
+}
+
+/* 头部网格改成2栏布局：重点时间 + 势力战注意事项 */
+.visual-grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:14px;
+}
+.visual-panel{
+  background:linear-gradient(135deg, rgba(28,19,51,0.9), rgba(10,6,24,0.9));
+  border:1px solid rgba(145,93,255,0.35);
+  border-radius:10px;
+  padding:10px 12px;
+}
+.visual-panel h4{
+  font-size:15px;
+  color:#ffdd70;
+  margin-bottom:8px;
+  padding-bottom:5px;
+  border-bottom:1px dashed rgba(255,212,96,0.35);
+}
+
+/* 时间线样式 */
+.timeline{display:flex;flex-direction:column;gap:6px;}
+.timeline-item{
+  display:flex;align-items:center;gap:8px;
+  padding:5px 8px;border-radius:6px;
+  background:rgba(255,255,255,0.03);
+}
+.time-dot{width:9px;height:9px;border-radius:50%;background:#ffd460;box-shadow:0 0 6px #ffd460;flex-shrink:0;}
+.time-text{font-size:13px;color:#f1e9ff;}
+.time-text b{color:#ffd460;margin-right:4px;font-size:14px;}
+
+/* 注意事项 */
+.notice-grid{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap:6px;
+}
+.notice-item{
+  display:flex;gap:6px;font-size:13px;color:#e3d9ff;line-height:1.4;
+  padding:4px 6px;border-radius:6px;background:rgba(255,255,255,0.03);
+}
+.notice-item .mark{color:#ffd460;font-weight:bold;flex-shrink:0;}
+
+/* =================== 主体排班区域 =================== */
+.container{
+  position:relative;
+  display:grid;
+  grid-template-columns: 75% 24%;
+  gap:12px;
+  z-index:1;
+  min-width:0;
+}
+.group-wrap{display:flex;flex-direction:column;gap:16px;min-width:0;}
+.group-title{
+  font-size:18px;
+  padding:8px 12px;
+  background:linear-gradient(90deg,#592fb3,#281650);
+  border-radius:8px;
+  border-left:4px solid #ffd460;
+  margin-bottom:8px;
+}
+.team-row{display:grid;grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));gap:10px;}
+.team-card{
+  background:#17102b;
+  border:1px solid #6c42b866;
+  border-radius:10px;
+  padding:8px;
+  transition:0.3s;
+  cursor: grab;
+}
+.team-card:active{cursor:grabbing;}
+.team-card:hover{border-color:#9468ff88;box-shadow:0 0 12px #6b3fc033;}
+.team-card h4{
+  text-align:center;
+  padding-bottom:6px;
+  border-bottom:1px solid #6644aa44;
+  color:#e3c8ff;
+  font-size:15px;
+}
+.player-list{min-height:180px;display:flex;flex-direction:column;gap:6px;margin-top:6px;}
+.player-item{
+  padding:6px 8px;border-radius:6px;
+  cursor:pointer;display:flex;align-items:center;gap:6px;
+  transition:0.25s;border:1px solid transparent;user-select:none;
+}
+.player-item:hover{filter:brightness(1.25);border-color:#ffffff66;transform:translateX(2px);}
+
+/* ========== 职业颜色 ========== */
+.kuimi{background:#7938b8;box-shadow:0 0 8px #9b52e055;}
+.zhanshi{background:#d46020;box-shadow:0 0 8px #ff7b2c55;}
+.xuetú{background:#3488bb;box-shadow:0 0 8px #42a8e055;}
+.guanzhong{background:#48a888;box-shadow:0 0 8px #58c8a255;}
+.gesong{background:#d8b028;box-shadow:0 0 8px #ffd23855;color:#111;}
+.zhanbu{background:#343480;box-shadow:0 0 8px #4848b055;}
+
+/* 职业胶囊标签 */
+.job-tag{
+  flex-shrink:0;
+  display:inline-flex;
+  align-items:center;justify-content:center;
+  padding:4px 8px;border-radius:999px;
+  font-size:11px;font-weight:bold;color:#fff;
+  white-space:nowrap;position:relative;
+  background-size:250% 100%;animation:shine 4s linear infinite;
+}
+@keyframes shine {
+  0% { background-position: 250% 0; }
+  100% { background-position: -250% 0; }
+}
+.job-tag-kuimi{background-image:linear-gradient(90deg,#3b1a62 0%,#5a2891 30%,#7938b8 45%,rgba(200,160,255,0.45) 50%,#7938b8 55%,#5a2891 70%,#3b1a62 100%);}
+.job-tag-zhanshi{background-image:linear-gradient(90deg,#7a3312 0%,#a54618 30%,#d46020 45%,rgba(255,180,120,0.42) 50%,#d46020 55%,#a54618 70%,#7a3312 100%);}
+.job-tag-xuetú{background-image:linear-gradient(90deg,#164a6c 0%,#246a94 30%,#3488bb 45%,rgba(140,200,255,0.42) 50%,#3488bb 55%,#246a94 70%,#164a6c 100%);}
+.job-tag-guanzhong{background-image:linear-gradient(90deg,#255a47 0%,#36866a 30%,#48a888 45%,rgba(140,220,190,0.42) 50%,#48a888 55%,#36866a 70%,#255a47 100%);}
+.job-tag-gesong{color:#1a1200;background-image:linear-gradient(90deg,#7a6212 0%,#a8871f 30%,#d8b028 45%,rgba(255,220,140,0.45) 50%,#d8b028 55%,#a8871f 70%,#7a6212 100%);}
+.job-tag-zhanbu{background-image:linear-gradient(90deg,#141442 0%,#25255c 30%,#343480 45%,rgba(140,140,220,0.42) 50%,#343480 55%,#25255c 70%,#141442 100%);}
+
+/* 拖拽样式 */
+.sort-ghost{opacity:0.4;border:2px dashed #fff;}
+.sort-chosen{transform:scale(1.04);box-shadow:0 0 20px #fff6;}
+.team-ghost{background:#ffffff22;border:1px dashed #ffe699;border-radius:10px;}
+.team-chosen{box-shadow:0 0 18px #ffe69977;}
+.side-panel{display:flex;flex-direction:column;gap:12px;min-width:0;}
+.side-card{background:#17102b;border:1px solid #6c42b866;border-radius:10px;padding:10px;}
+.side-card h4{padding-bottom:8px;border-bottom:1px solid #6644aa44;color:#ffdd88;margin-bottom:8px;font-size:16px;}
+.add-btn{
+  width:100%;margin-top:6px;padding:6px 10px;
+  border:none;border-radius:999px;
+  background:linear-gradient(135deg, #592fb3, #3c2072);
+  color:#ffe699;font-size:12px;font-weight:bold;
+  cursor:pointer;transition:0.3s;
+}
+.add-btn:hover{filter:brightness(1.2);}
+.stat-line{display:flex;justify-content:space-between;padding:3px 0;font-size:12px;border-bottom:1px solid #44337744;}
+
+/* 弹窗样式，提升z-index防止遮挡 */
+.modal-mask{
+  position:fixed;top:0;left:0;width:100%;height:100%;background:#00000090;
+  display:none;align-items:center;justify-content:center;z-index:9999;
+}
+.modal-box{
+  background:#17102b;border:1px solid #9468ff88;border-radius:12px;padding:16px;width:340px;
+  z-index:10000;
+}
+.modal-box h4{color:#ffe699;margin-bottom:12px;text-align:center;}
+.modal-row{margin-bottom:10px;}
+.modal-row label{display:block;margin-bottom:4px;font-size:13px;color:#e3d9ff;}
+.modal-row input,.modal-row select{
+  width:100%;padding:6px 8px;border-radius:6px;background:#221840;border:1px solid #6c42b8;color:#fff;
+}
+.modal-buttons{display:flex;gap:8px;margin-top:14px;}
+.modal-buttons button{flex:1;padding:7px;border:none;border-radius:6px;font-weight:bold;cursor:pointer;}
+.confirm-btn{background:#592fb3;color:#ffe699;}
+.del-confirm-btn{background:#882222;color:#fff;}
+.cancel-btn{background:#444;color:#ddd;}
+.modal-tab{display:flex;gap:6px;margin-bottom:12px;}
+.modal-tab button{flex:1;padding:5px;border:none;border-radius:6px;cursor:pointer;}
+.tab-add{background:#592fb3;color:#ffe699;}
+.tab-del{background:#333;color:#fff;}
+</style>
+</head>
+<body>
+
+<!-- 添加/删除成员弹窗 移除onclick，改用JS绑定 -->
+<div class="modal-mask" id="editModal">
+  <div class="modal-box">
+    <h4>成员管理</h4>
+    <div class="modal-tab">
+      <button class="tab-add">新增成员</button>
+      <button class="tab-del">删除成员</button>
+    </div>
+    <div id="panelAdd">
+      <div class="modal-row">
+        <label>队员名称</label>
+        <input id="newName" placeholder="输入角色名">
+      </div>
+      <div class="modal-row">
+        <label>选择职业</label>
+        <select id="newJob">
+          <option value="kuimi">窥秘人</option>
+          <option value="zhanshi">战士</option>
+          <option value="xuetú">学徒</option>
+          <option value="guanzhong">观众</option>
+          <option value="gesong">歌颂者</option>
+          <option value="zhanbu">占卜家</option>
+        </select>
+      </div>
+    </div>
+    <div id="panelDel" style="display:none;">
+      <div class="modal-row">
+        <label>选择要删除的成员</label>
+        <select id="delPlayerSelect"></select>
+      </div>
+    </div>
+    <div class="modal-buttons">
+      <button class="confirm-btn" id="btnAddSave">确认新增</button>
+      <button class="del-confirm-btn" id="btnDelSave" style="display:none;">确认删除</button>
+      <button class="cancel-btn" id="btnCancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- =================== 美化后的头部区域 =================== -->
+<div class="header-visual">
+  <div class="visual-title">【纵横战略服】人员参加表 10月10日 星期六</div>
+  <div class="title-divider"></div>
+
+  <div class="visual-grid">
+    <!-- 左侧：重点时间 -->
+    <div class="visual-panel">
+      <h4>重点时间</h4>
+      <div class="timeline">
+        <div class="timeline-item"><span class="time-dot"></span><span class="time-text"><b>猎龙集合</b>19:00｜集合点二线</span></div>
+        <div class="timeline-item"><span class="time-dot"></span><span class="time-text"><b>讨伐巨龙</b>20:00</span></div>
+        <div class="timeline-item"><span class="time-dot"></span><span class="time-text"><b>猎城战</b>20:45</span></div>
+        <div class="timeline-item"><span class="time-dot"></span><span class="time-text"><b>数据排查</b>22:00</span></div>
+        <div class="timeline-item" style="margin-top:8px;background:rgba(255,180,80,0.15);"><span class="time-dot" style="background:#ffb450;"></span><span class="time-text">⚠️ 避免进不去可自行安排时间进团挂机</span></div>
+      </div>
+    </div>
+
+    <!-- 右侧：势力战注意事项 -->
+    <div class="visual-panel">
+      <h4>势力战注意事项</h4>
+      <div class="notice-grid">
+        <div class="notice-item"><span class="mark">◆</span>严禁最后进场才请假，视作浪费参战名额=挂机</div>
+        <div class="notice-item"><span class="mark">◆</span>报名后有事，请提前联系管理</div>
+        <div class="notice-item"><span class="mark">◆</span>严禁活动期间恶意挂机，直接取消后续神选资格</div>
+        <div class="notice-item"><span class="mark">◆</span>双观众队伍协调好技能搭配</div>
+        <div class="notice-item"><span class="mark">◆</span>提前10分钟检查装备套路，俱乐部确认是否为候补</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== 主体排班区域 =================== -->
+<div class="container">
+  <div class="group-wrap">
+    <div class="group-block" data-group="g1">
+      <div class="group-title">☪ 一团｜指挥：男枪</div>
+      <div class="team-row" data-row="g1"></div>
+    </div>
+
+    <div class="group-block" data-group="g2">
+      <div class="group-title">☪ 二团｜统战：亦非空</div>
+      <div class="team-row" data-row="g2"></div>
+    </div>
+  </div>
+
+  <div class="side-panel">
+    <div class="side-card">
+      <h4>📊 人员统计</h4>
+      <div id="statPanel"></div>
+    </div>
+    <div class="side-card">
+      <h4>📜候补名单</h4>
+      <div class="player-list" id="waitList"></div>
+      <button class="add-btn" id="openWaitBtn">+ 添加成员</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// 原始默认数据
+const defaultGroupData = {
+  g1:[
+    {id:"g1t1",name:"1队",players:[
+      {job:"kuimi",name:"男枪",note:"主力输出",actCount:12},
+      {job:"zhanshi",name:"糖醋排骨",note:"前排承伤",actCount:9},
+      {job:"kuimi",name:"冥渊尊使",note:"",actCount:15},
+      {job:"zhanbu",name:"琴心尊使",note:"",actCount:7},
+      {job:"guanzhong",name:"风遥遥",note:"主奶",actCount:11},
+      {job:"guanzhong",name:"苏神奇",note:"副奶",actCount:8},
+    ]},
+    {id:"g1t2",name:"2队",players:[
+      {job:"zhanshi",name:"倾久玄",note:"",actCount:6},
+      {job:"gesong",name:"没有乐趣",note:"净化",actCount:10},
+      {job:"zhanbu",name:"没有手手",note:"",actCount:4},
+      {job:"xuetú",name:"没有早退",note:"",actCount:5},
+      {job:"guanzhong",name:"没有晚风",note:"",actCount:9},
+      {job:"guanzhong",name:"没有迟到",note:"",actCount:7},
+    ]},
+    {id:"g1t3",name:"3队",players:[
+      {job:"zhanshi",name:"没有输出",note:"",actCount:8},
+      {job:"kuimi",name:"没有情绪",note:"",actCount:13},
+      {job:"zhanbu",name:"没有情趣",note:"",actCount:6},
+      {job:"xuetú",name:"没有耐心",note:"",actCount:5},
+      {job:"guanzhong",name:"没有素质",note:"",actCount:10},
+      {job:"guanzhong",name:"野画集",note:"",actCount:7},
+    ]},
+    {id:"g1t4",name:"4队",players:[
+      {job:"zhanshi",name:"点小点",note:"",actCount:9},
+      {job:"gesong",name:"你那幸运的袖",note:"",actCount:11},
+      {job:"zhanbu",name:"仙踪",note:"",actCount:4},
+      {job:"xuetú",name:"第四天灾",note:"",actCount:6},
+      {job:"kuimi",name:"姜月初",note:"",actCount:14},
+      {job:"guanzhong",name:"宅猫",note:"",actCount:8},
+    ]},
+    {id:"g1t5",name:"5队",players:[
+      {job:"zhanshi",name:"不知春秋",note:"",actCount:7},
+      {job:"kuimi",name:"钢镚",note:"",actCount:12},
+      {job:"kuimi",name:"神秘猫猫头",note:"",actCount:10},
+      {job:"xuetú",name:"碎碎碎碎念",note:"",actCount:5},
+      {job:"kuimi",name:"给我来点感觉",note:"",actCount:11},
+      {job:"guanzhong",name:"好运甜冰茶",note:"",actCount:9},
+    ]},
+  ],
+  g2:[
+    {id:"g2t1",name:"1队",players:[
+      {job:"zhanshi",name:"陆谦",note:"",actCount:8},
+      {job:"kuimi",name:"音兰欧",note:"",actCount:13},
+      {job:"xuetú",name:"故至",note:"",actCount:6},
+      {job:"gesong",name:"老兵李彦泽",note:"",actCount:10},
+      {job:"guanzhong",name:"忆梦回枕",note:"",actCount:7},
+      {job:"guanzhong",name:"四象",note:"",actCount:8},
+    ]},
+    {id:"g2t2",name:"2队",players:[
+      {job:"zhanshi",name:"养燏",note:"",actCount:6},
+      {job:"zhanbu",name:"我又不乱来....",note:"",actCount:9},
+      {job:"gesong",name:"阿斯卡",note:"",actCount:11},
+      {job:"zhanbu",name:"書羽",note:"",actCount:5},
+      {job:"guanzhong",name:"奈芙",note:"",actCount:8},
+      {job:"guanzhong",name:"烬屿",note:"",actCount:7},
+    ]},
+    {id:"g2t3",name:"3队",players:[
+      {job:"zhanshi",name:"云层贩卖温柔",note:"",actCount:9},
+      {job:"zhanbu",name:"寸寸",note:"",actCount:6},
+      {job:"xuetú",name:"装会玩",note:"",actCount:4},
+      {job:"kuimi",name:"花生今天吃什么",note:"",actCount:12},
+      {job:"zhanbu",name:"瞻君",note:"",actCount:7},
+      {job:"guanzhong",name:"爱妃",note:"",actCount:10},
+    ]},
+    {id:"g2t4",name:"4队",players:[
+      {job:"zhanshi",name:"爻义",note:"",actCount:8},
+      {job:"kuimi",name:"如伊泽尔",note:"",actCount:11},
+      {job:"gesong",name:"很有想法",note:"",actCount:9},
+      {job:"kuimi",name:"菠萝炒饭",note:"",actCount:13},
+      {job:"guanzhong",name:"小梦萦",note:"",actCount:6},
+      {job:"guanzhong",name:"提丰",note:"",actCount:7},
+    ]},
+    {id:"g2t5",name:"5队",players:[
+      {job:"zhanshi",name:"埃里安",note:"",actCount:7},
+      {job:"gesong",name:"泯灭人欲",note:"",actCount:10},
+      {job:"xuetú",name:"谁给你的底气",note:"",actCount:5},
+      {job:"zhanbu",name:"醉笑花底舞弦",note:"",actCount:8},
+      {job:"guanzhong",name:"小玉儿",note:"",actCount:9},
+      {job:"guanzhong",name:"阿晴",note:"",actCount:6},
+    ]},
+  ],
+  waitList:[
+    {job:"gesong",name:"普通豹纹大叔",note:"候补",actCount:8},
+    {job:"zhanshi",name:"南巷",note:"候补",actCount:5},
+    {job:"zhanshi",name:"承济",note:"候补",actCount:7},
+    {job:"zhanbu",name:"云尽溪长",note:"候补",actCount:6},
+    {job:"zhanbu",name:"姝容",note:"候补",actCount:4},
+    {job:"kuimi",name:"泪人",note:"候补",actCount:9},
+  ]
+};
+
+// 读取本地存储，没有就用默认数据
+let groupData;
+let currentTargetBoxId = ""; // 当前操作的容器id
+const saveKey = "guimi-bangzhan-data";
+const localRaw = localStorage.getItem(saveKey);
+if(localRaw){
+  try{
+    groupData = JSON.parse(localRaw);
+  }catch(e){
+    groupData = JSON.parse(JSON.stringify(defaultGroupData));
+  }
+}else{
+  groupData = JSON.parse(JSON.stringify(defaultGroupData));
+}
+
+// 保存到本地存储
+function saveLocal(){
+  localStorage.setItem(saveKey, JSON.stringify(groupData));
+}
+
+const jobInfo = {
+  kuimi:{ label:"窥秘人" },
+  zhanshi:{ label:"战士" },
+  xuetú:{ label:"学徒" },
+  guanzhong:{ label:"观众" },
+  gesong:{ label:"歌颂者" },
+  zhanbu:{ label:"占卜家" }
+};
+
+let sortableList = [];
+let modalActiveTab = "add";
+
+// 切换弹窗标签：新增 / 删除
+function switchModalTab(tab){
+  const arr = getTargetArr();
+  if(tab === "del" && arr.length <=0){
+    alert("当前列表没有成员，无法删除");
+    return;
+  }
+  modalActiveTab = tab;
+  document.getElementById("panelAdd").style.display = tab === "add" ? "block" : "none";
+  document.getElementById("panelDel").style.display = tab === "del" ? "block" : "none";
+  document.getElementById("btnAddSave").style.display = tab === "add" ? "block" : "none";
+  document.getElementById("btnDelSave").style.display = tab === "del" ? "block" : "none";
+
+  if(tab === "del"){
+    fillDeleteSelect();
+  }
+}
+
+// 打开成员管理弹窗
+function openManageModal(boxId){
+  currentTargetBoxId = boxId;
+  document.getElementById("newName").value = "";
+  document.getElementById("newJob").value = "kuimi";
+  switchModalTab("add");
+  document.getElementById("editModal").style.display = "flex";
+}
+
+function closeModal(){
+  document.getElementById("editModal").style.display = "none";
+}
+
+// 填充删除下拉列表
+function fillDeleteSelect(){
+  const selectEl = document.getElementById("delPlayerSelect");
+  selectEl.innerHTML = "";
+  const arr = getTargetArr();
+  arr.forEach((p,idx)=>{
+    const opt = document.createElement("option");
+    opt.value = idx;
+    opt.textContent = `${p.name}【${jobInfo[p.job].label}】`;
+    selectEl.appendChild(opt);
+  })
+}
+
+// 获取当前操作数组
+function getTargetArr(){
+  if(currentTargetBoxId === "waitList"){
+    return groupData.waitList;
+  }else{
+    let findTeam = null;
+    for(const g of ["g1","g2"]){
+      const t = groupData[g].find(x=>x.id === currentTargetBoxId);
+      if(t){ findTeam = t; break; }
+    }
+    return findTeam.players;
+  }
+}
+
+// 确认新增成员
+function confirmAdd(){
+  const name = document.getElementById("newName").value.trim();
+  const job = document.getElementById("newJob").value;
+  if(!name){
+    alert("请输入角色名称");
+    return;
+  }
+  const targetArr = getTargetArr();
+  targetArr.push({
+    job: job,
+    name: name,
+    note:"",
+    actCount:0
+  });
+  closeModal();
+  renderAll();
+}
+
+// ========== 确认删除函数（增加调试日志） ==========
+function confirmDel(){
+  console.log("确认删除触发");
+  const selectEl = document.getElementById("delPlayerSelect");
+  const idx = Number(selectEl.value);
+  const targetArr = getTargetArr();
+  console.log("选中索引：", idx, "数组长度：", targetArr.length);
+  if(isNaN(idx) || idx <0 || idx >= targetArr.length){
+    alert("选中成员索引异常！");
+    return;
+  }
+  const memberName = targetArr[idx].name;
+  if(confirm(`确定要删除成员：${memberName}？`)){
+    targetArr.splice(idx,1);
+    closeModal();
+    renderAll();
+    console.log("删除完成");
+  }
+}
+
+// 渲染单个小队卡片
+function renderTeamCard(groupKey, teamItem){
+  const wrap = document.createElement("div");
+  wrap.className = "team-card";
+  wrap.dataset.teamId = teamItem.id;
+  wrap.dataset.group = groupKey;
+  wrap.innerHTML = `
+    <h4>${teamItem.name}</h4>
+    <div class="player-list" id="${teamItem.id}"></div>
+    <button class="add-btn teamOpenBtn">+ 添加成员</button>
+  `;
+  const btn = wrap.querySelector(".teamOpenBtn");
+  btn.onclick = ()=> openManageModal(teamItem.id);
+
+  const playerWrap = wrap.querySelector(".player-list");
+  teamItem.players.forEach((p,idx)=>{
+    const div = document.createElement("div");
+    div.className = `player-item ${p.job}`;
+    div.dataset.index = idx;
+    div.dataset.box = teamItem.id;
+
+    const jobTag = document.createElement("span");
+    jobTag.className = `job-tag job-tag-${p.job}`;
+    jobTag.textContent = jobInfo[p.job].label;
+
+    const nameWrap = document.createElement("span");
+    nameWrap.className = "name-text";
+    nameWrap.textContent = p.name;
+    nameWrap.ondblclick = ()=> editName(nameWrap);
+
+    div.appendChild(jobTag);
+    div.appendChild(nameWrap);
+    playerWrap.appendChild(div);
+  })
+  return wrap;
+}
+
+// 渲染一团/二团所有小队
+function renderGroupRow(groupKey){
+  const rowEl = document.querySelector(`.team-row[data-row="${groupKey}"]`);
+  rowEl.innerHTML = "";
+  groupData[groupKey].forEach(team=>{
+    const card = renderTeamCard(groupKey, team);
+    rowEl.appendChild(card);
+  })
+}
+
+// 渲染候补列表
+function renderWaitList(){
+  const wrap = document.getElementById("waitList");
+  wrap.innerHTML = "";
+  groupData.waitList.forEach((p,idx)=>{
+    const div = document.createElement("div");
+    div.className = `player-item ${p.job}`;
+    div.dataset.index = idx;
+    div.dataset.box = "waitList";
+
+    const jobTag = document.createElement("span");
+    jobTag.className = `job-tag job-tag-${p.job}`;
+    jobTag.textContent = jobInfo[p.job].label;
+
+    const nameWrap = document.createElement("span");
+    nameWrap.className = "name-text";
+    nameWrap.textContent = p.name;
+    nameWrap.ondblclick = ()=> editName(nameWrap);
+
+    div.appendChild(jobTag);
+    div.appendChild(nameWrap);
+    wrap.appendChild(div);
+  })
+}
+
+function editName(el){
+  const boxId = el.parentElement.dataset.box;
+  const idx = Number(el.parentElement.dataset.index);
+  const targetArr = getArrByBoxId(boxId);
+  const oldName = targetArr[idx].name;
+  el.innerHTML = `<input class="name-input" value="${oldName}" onkeydown="nameInputEnter(event, this, '${boxId}',${idx})" onblur="saveName(this, '${boxId}',${idx})">`;
+  const input = el.querySelector("input");
+  input.focus();
+  input.select();
+}
+
+function getArrByBoxId(boxId){
+  if(boxId === "waitList"){
+    return groupData.waitList;
+  }else{
+    let findTeam = null;
+    for(const g of ["g1","g2"]){
+      const t = groupData[g].find(x=>x.id === boxId);
+      if(t){ findTeam = t; break; }
+    }
+    return findTeam.players;
+  }
+}
+
+function nameInputEnter(e,input,boxId,idx){
+  if(e.key === "Enter"){
+    saveName(input,boxId,idx);
+  }
+}
+
+function saveName(input,boxId,idx){
+  const newName = input.value.trim();
+  const targetArr = getArrByBoxId(boxId);
+  if(newName){
+    targetArr[idx].name = newName;
+  }
+  renderAll();
+}
+
+// 统计面板渲染
+function renderStat(){
+  const statWrap = document.getElementById("statPanel");
+  let g1Total = 0, g2Total=0, waitTotal=0;
+  let jobCount = {};
+  Object.keys(jobInfo).forEach(j=>jobCount[j]=0);
+
+  function countTeamPlayers(teamArr){
+    teamArr.forEach(team=>{
+      team.players.forEach(p=>{
+        jobCount[p.job]++;
+      })
+    })
+    let sum = 0;
+    teamArr.forEach(t=> sum += t.players.length);
+    return sum;
+  }
+
+  g1Total = countTeamPlayers(groupData.g1);
+  g2Total = countTeamPlayers(groupData.g2);
+  groupData.waitList.forEach(p=> jobCount[p.job]++);
+  waitTotal = groupData.waitList.length;
+
+  const allInBattle = g1Total + g2Total;
+  const allTotal = allInBattle + waitTotal;
+
+  let html = "";
+  html += `<div class="stat-line"><span>一团总人数</span><span>${g1Total}</span></div>`;
+  html += `<div class="stat-line"><span>二团总人数</span><span>${g2Total}</span></div>`;
+  html += `<div class="stat-line"><span>上场总人数</span><span>${allInBattle}</span></div>`;
+  html += `<div class="stat-line"><span>候补人数</span><span>${waitTotal}</span></div>`;
+  html += `<div class="stat-line"><span>全部登记人员</span><span>${allTotal}</span></div>`;
+  html += `<br><div style="color:#ffdd88;margin-bottom:6px">职业统计</div>`;
+  for(const j in jobCount){
+    html += `<div class="stat-line"><span>${jobInfo[j].label}</span><span>${jobCount[j]}</span></div>`;
+  }
+  statWrap.innerHTML = html;
+}
+
+// 全局初始化
+function renderAll(){
+  sortableList.forEach(s=>s.destroy());
+  sortableList = [];
+
+  renderGroupRow("g1");
+  renderGroupRow("g2");
+  renderWaitList();
+  renderStat();
+  saveLocal(); //每次渲染自动保存本地
+  // ========= 1. 小队卡片拖拽（横向调换小队顺序，同团内拖动） =========
+  document.querySelectorAll(".team-row").forEach(rowEl=>{
+    const s = new Sortable(rowEl,{
+      animation:180,
+      ghostClass:"team-ghost",
+      chosenClass:"team-chosen",
+      onEnd:function(evt){
+        const groupKey = evt.from.dataset.row;
+        const oldIdx = evt.oldIndex;
+        const newIdx = evt.newIndex;
+        const teamItem = groupData[groupKey].splice(oldIdx,1)[0];
+        groupData[groupKey].splice(newIdx,0,teamItem);
+        renderAll();
+      }
+    })
+    sortableList.push(s);
+  })
+
+  // ========= 2. 队员拖拽（跨小队、候补互拖） =========
+  const playerLists = document.querySelectorAll(".player-list");
+  playerLists.forEach(el=>{
+    const s = new Sortable(el,{
+      group:"cross",
+      animation:180,
+      ghostClass:"sort-ghost",
+      chosenClass:"sort-chosen",
+      onEnd:function(evt){
+        const fromId = evt.from.id;
+        const toId = evt.to.id;
+        const oldIndex = evt.oldIndex;
+        const newIndex = evt.newIndex;
+
+        // 获取源数组
+        const fromArr = getArrByBoxId(fromId);
+        const player = fromArr.splice(oldIndex,1)[0];
+
+        // 获取目标数组
+        const toArr = getArrByBoxId(toId);
+        toArr.splice(newIndex,0,player);
+        renderAll();
+      }
+    })
+    sortableList.push(s);
+  })
+}
+
+// ============ JS绑定所有弹窗按钮事件，不再依赖onclick ============
+document.addEventListener('DOMContentLoaded', function(){
+  // 标签切换
+  document.querySelector(".tab-add").addEventListener("click", ()=> switchModalTab("add"));
+  document.querySelector(".tab-del").addEventListener("click", ()=> switchModalTab("del"));
+
+  // 按钮
+  document.getElementById("btnAddSave").addEventListener("click", confirmAdd);
+  document.getElementById("btnDelSave").addEventListener("click", confirmDel);
+  document.getElementById("btnCancel").addEventListener("click", closeModal);
+  document.getElementById("openWaitBtn").addEventListener("click", ()=> openManageModal("waitList"));
+
+  renderAll();
+});
+</script>
+
+</body>
+</html>
